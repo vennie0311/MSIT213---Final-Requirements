@@ -1,0 +1,68 @@
+[
+{
+  "model": "portal.scholarshiptype",
+  "pk": 1,
+  "fields": {
+    "name": "CHED",
+    "description": "CHED",
+    "created_at": "2026-05-28T14:33:25.449Z"
+  }
+},
+{
+  "model": "portal.scholarshiptype",
+  "pk": 2,
+  "fields": {
+    "name": "TES",
+    "description": "TES",
+    "created_at": "2026-05-28T14:33:25.449Z"
+  }
+},
+{
+  "model": "portal.scholarshiptype",
+  "pk": 3,
+  "fields": {
+    "name": "OTHER",
+    "description": "Other",
+    "created_at": "2026-05-28T14:33:25.449Z"
+  }
+},
+{
+  "model": "portal.scholarshipprogram",
+  "pk": 1,
+  "fields": {
+    "name": "CHED Scholarship",
+    "description": "A government-supported scholarship for eligible college students.",
+    "region": "Region 1",
+    "scholarship_type": null,
+    "active": true,
+    "created_by": null,
+    "created_at": "2026-05-28T14:33:21.399Z"
+  }
+},
+{
+  "model": "portal.scholarshipprogram",
+  "pk": 2,
+  "fields": {
+    "name": "DOST Scholarships",
+    "description": "Science and technology scholarships for high-performing students.",
+    "region": "Region 2",
+    "scholarship_type": null,
+    "active": true,
+    "created_by": null,
+    "created_at": "2026-05-28T14:33:21.399Z"
+  }
+},
+{
+  "model": "portal.scholarshipprogram",
+  "pk": 3,
+  "fields": {
+    "name": "TES Program",
+    "description": "Technical-education support scholarships for regional applicants.",
+    "region": "Region 3",
+    "scholarship_type": null,
+    "active": true,
+    "created_by": null,
+    "created_at": "2026-05-28T14:33:21.399Z"
+  }
+}
+]
