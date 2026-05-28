@@ -1,0 +1,25 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="panel form-card">
+    <div class="page-title">
+        <div>
+            <h2>Welcome back</h2>
+            <p>Log in to manage your scholarships, applications, and program progress.</p>
+        </div>
+    </div>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-list">
+            <div class="form-group">
+                <label>{{ form.username.label }}</label>
+                {{ form.username }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.password.label }}</label>
+                {{ form.password }}
+            </div>
+        </div>
+        <button type="submit" class="primary">Login</button>
+    </form>
+</section>
+{% endblock %}

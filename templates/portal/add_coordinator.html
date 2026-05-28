@@ -1,0 +1,40 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="panel form-card">
+    <div class="page-title">
+        <div>
+            <h2>Add Coordinator Account</h2>
+            <p>Create a new coordinator user and assign the scholarship type they should manage.</p>
+        </div>
+        <div class="page-actions">
+            <a class="secondary" href="{% url 'portal:home' %}">Back to Home</a>
+        </div>
+    </div>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="toast error">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="form-list" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:1rem;">
+            {% for field in form %}
+                {% if field.widget.input_type != 'hidden' %}
+                    <div class="form-group">
+                        <label>{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <small style="color: #d32f2f;">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ field }}
+                {% endif %}
+            {% endfor %}
+        </div>
+        <button type="submit" class="primary" style="grid-column:1 / -1;">Create Coordinator</button>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,42 @@
+!{% extends 'portal/base.html' %}
+{% block content %}
+<section class="page-block">
+    <div class="page-title">
+        <div>
+            <h2>Scholarship Types</h2>
+            <p>Manage the scholarship type categories used for program assignment and coordinator routing.</p>
+        </div>
+        <div class="page-actions">
+            <a class="primary" href="{% url 'portal:add_scholarship_type' %}">Add Scholarship Type</a>
+        </div>
+    </div>
+    {% if types %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for type in types %}
+                <tr>
+                    <td>{{ type.name }}</td>
+                    <td>{{ type.description|default:'No description provided' }}</td>
+                    <td>{{ type.created_at|date:'M d, Y' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card card-compact">
+        <h3>No scholarship types defined</h3>
+        <p>Create a new scholarship type to start grouping programs.</p>
+        <a class="primary" href="{% url 'portal:add_scholarship_type' %}">Add Scholarship Type</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

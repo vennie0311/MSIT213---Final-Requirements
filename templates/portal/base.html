@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scholarship Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css" integrity="sha512-Ko8tNI0Z4pHwqRsv58u9Dru/enQq+JE0+Jz0EdQGT0h3XrXnwK1e0F4V7TOuTPaqU/2U8s5PN/gL6zqXr9vBuQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --bg-1: #eef2ff;
+            --bg-2: #f9f7ff;
+            --primary-1: #7c3aed;
+            --primary-2: #0ea5e9;
+            --accent: #fb7185;
+            --surface: #ffffff;
+            --muted: #52607a;
+            --shadow-1: 0 14px 30px rgba(15, 23, 42, 0.08);
+            --shadow-2: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
+        * { box-sizing: border-box; }
+        html, body { min-height: 100%; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: radial-gradient(circle at top left, rgba(124,58,237,0.16), transparent 26%),
+                        radial-gradient(circle at bottom right, rgba(14,165,233,0.12), transparent 28%),
+                        linear-gradient(180deg, var(--bg-1), var(--bg-2));
+            color: #111827;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+        body > main { max-width: 1400px; margin: 0 auto; }
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            border-radius: 22px;
+            background: rgba(255,255,255,0.82);
+            backdrop-filter: blur(14px);
+            box-shadow: var(--shadow-1);
+            border: 1px solid rgba(124,58,237,0.08);
+            margin-bottom: 1.75rem;
+        }
+        .site-header a { text-decoration: none; color: #111827; font-weight: 700; }
+        .site-header nav a { margin-left: 1rem; color: #555f7a; transition: all 0.18s ease; }
+        .site-header nav a:hover { color: var(--primary-1); transform: translateY(-1px); }
+        .hero, .card, .panel, .page-block { background: rgba(255,255,255,0.95); border-radius: 24px; box-shadow: var(--shadow-2); padding: 1.75rem; }
+        h1, h2, h3, h4 { margin: 0 0 0.6rem; font-weight: 700; letter-spacing: -0.03em; }
+        p, small, label { color: #475569; line-height: 1.75; }
+        .page-title { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .page-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .btn-group, .page-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; }
+        .hero h1 { font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.05; }
+        .hero p { max-width: 680px; }
+        .feature-card { border-radius: 20px; border: 1px solid rgba(124,58,237,0.08); padding: 1rem 1.15rem; background: rgba(248,250,252,0.9); }
+        .hero-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+        .form-card { max-width: 720px; margin: 0 auto; }
+        .panel form { display: grid; gap: 1rem; }
+        .form-list { display: grid; gap: 1rem; }
+        .form-group { display: grid; gap: 0.55rem; }
+        label { font-size: 0.95rem; font-weight: 600; }
+        input, select, textarea { width: 100%; background: white; border: 1px solid rgba(15,23,42,0.12); border-radius: 14px; padding: 0.95rem 1rem; transition: all 0.2s ease; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: rgba(124,58,237,0.4); box-shadow: 0 8px 24px rgba(124,58,237,0.12); }
+        textarea { min-height: 140px; resize: vertical; }
+        button.primary, a.primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; border-radius: 14px; cursor: pointer; font-weight: 600; text-decoration: none; }
+        button.primary { border: none; }
+        .primary { background: linear-gradient(135deg, var(--primary-1), var(--primary-2)); color: white; padding: 0.95rem 1.3rem; }
+        .secondary { color: var(--primary-1); background: rgba(124,58,237,0.08); padding: 0.85rem 1.1rem; border-radius: 14px; text-decoration: none; border: 1px solid rgba(124,58,237,0.16); }
+        .secondary:hover, .primary:hover { transform: translateY(-1px); }
+        .btn-approve {
+            background: linear-gradient(135deg, #10b981, #059669); /* emerald green */
+            color: white; border: none; padding: 0.45rem 0.8rem; border-radius: 10px; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(6, 182, 126, 0.12);
+        }
+        .btn-approve:hover { transform: translateY(-2px); box-shadow: 0 18px 34px rgba(6, 182, 126, 0.14); }
+        .btn-reject {
+            background: linear-gradient(135deg, #ef4444, #dc2626); /* red */
+            color: white; border: none; padding: 0.45rem 0.8rem; border-radius: 10px; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.12);
+        }
+        .btn-reject:hover { transform: translateY(-2px); box-shadow: 0 18px 34px rgba(220, 38, 38, 0.14); }
+        .toast { border-radius: 16px; padding: 1rem 1.1rem; margin-bottom: 1rem; }
+        .toast.error { background: #fef2f2; color: #991b1b; }
+        .toast.success { background: #ecfeff; color: #0f766e; }
+        .table-wrapper { overflow-x: auto; border-radius: 18px; }
+        table { width: 100%; border-collapse: collapse; min-width: 640px; }
+        th, td { padding: 1rem 1.1rem; border-bottom: 1px solid rgba(15,23,42,0.08); }
+        th { text-align: left; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.78rem; color: #64748b; }
+        tr:hover { background: rgba(14,165,233,0.08); }
+        .grid-two { display: grid; gap: 1.5rem; grid-template-columns: minmax(0,1.35fr) minmax(0,0.65fr); }
+        .section-grid { display: grid; gap: 1.5rem; }
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; margin-bottom: 1rem; color: #475569; }
+        .filter-bar strong { color: #334155; }
+        .filter-pill { padding: 0.5rem 0.9rem; border-radius: 999px; border: 1px solid rgba(124,58,237,0.12); background: #f8fafc; color: #334155; text-decoration: none; transition: transform 0.15s ease, background 0.15s ease; }
+        .filter-pill:hover, .filter-pill.active { background: rgba(124,58,237,0.14); }
+        .form-card { max-width: 960px; margin: 0 auto; }
+        .form-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+        .form-grid .form-group { margin-bottom: 0; }
+        .form-grid .form-group input,
+        .form-grid .form-group select,
+        .form-grid .form-group textarea { width: 100%; }
+        .form-actions { display:flex; justify-content:flex-end; gap:1rem; margin-top:1.25rem; }
+        .form-actions a, .form-actions button { min-width: 160px; }
+        .page-footer { margin-top: 2.5rem; text-align: center; color: #64748b; font-size: 0.95rem; }
+        @media (max-width:960px){ .grid-two { grid-template-columns: 1fr; } }
+        @media (max-width:720px){ .site-header { padding: 1rem; } .page-title { flex-direction: column; align-items: flex-start; } }
+    </style>
+</head>
+<body>
+<header class="site-header">
+    <a href="{% url 'portal:home' %}"><strong>Scholarship Portal</strong></a>
+    <nav>
+        <a href="{% url 'portal:home' %}">Home</a>
+        {% if user.is_authenticated %}
+            {% if not user.is_staff %}<a href="{% url 'portal:student_dashboard' %}">My Applications</a>{% endif %}
+            <a href="{% url 'portal:scholarship_catalog' %}">Programs</a>
+            {% if user.is_staff and not user.is_superuser %}<a href="{% url 'portal:coordinator_dashboard' %}">Scholarships</a>{% endif %}
+            {% if user.is_superuser %}<a href="{% url 'portal:coordinator_dashboard' %}">Applicants</a><a href="{% url 'portal:coordinator_list' %}">Coordinators</a><a href="{% url 'portal:scholarship_type_list' %}">Scholarship Types</a>{% endif %}
+            <a href="{% url 'portal:logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'portal:login' %}">Login</a>
+            <a href="{% url 'portal:register' %}">Register</a>
+        {% endif %}
+    </nav>
+</header>
+<main>
+    {% if messages %}
+        <section>
+            {% for message in messages %}
+                <div class="toast {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </section>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

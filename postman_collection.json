@@ -1,0 +1,67 @@
+{
+  "info": {
+    "name": "Scholarship Application Portal API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API collection for JWT authentication and application verification"
+  },
+  "item": [
+    {
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "username", "value": "student1" },
+            { "key": "email", "value": "student1@example.com" },
+            { "key": "first_name", "value": "Student" },
+            { "key": "last_name", "value": "Test" },
+            { "key": "region", "value": "North" },
+            { "key": "password1", "value": "Password123!" },
+            { "key": "password2", "value": "Password123!" },
+            { "key": "honeypot", "value": "" }
+          ]
+        },
+        "url": { "raw": "{{base_url}}/accounts/register/", "host": ["{{base_url}}"], "path": ["accounts", "register", ""] }
+      }
+    },
+    {
+      "name": "Obtain JWT Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"AdminPass123!\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/api/token/", "host": ["{{base_url}}"], "path": ["api", "token", ""] }
+      }
+    },
+    {
+      "name": "Verify Application Status (Authenticated)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/verify/1/", "host": ["{{base_url}}"], "path": ["api", "verify", "1", ""] }
+      }
+    },
+    {
+      "name": "Verify Application Status (Unauthenticated)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/api/verify/1/", "host": ["{{base_url}}"], "path": ["api", "verify", "1", ""] }
+      }
+    }
+  ]
+}

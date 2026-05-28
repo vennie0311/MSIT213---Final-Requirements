@@ -1,0 +1,40 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="panel form-card">
+    <div class="page-title">
+        <div>
+            <h2>Create your account</h2>
+            <p>Join the portal to apply for scholarships, track status, and manage documents securely.</p>
+        </div>
+        <div class="page-actions">
+            <a class="secondary" href="{% url 'portal:login' %}">Already have an account?</a>
+        </div>
+    </div>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="toast error">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="form-list">
+            {% for field in form %}
+                {% if field.widget.input_type != 'hidden' %}
+                    <div class="form-group">
+                        <label>{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <small style="color: #d32f2f;">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ field }}
+                {% endif %}
+            {% endfor %}
+        </div>
+        <button type="submit" class="primary">Create Account</button>
+    </form>
+</section>
+{% endblock %}

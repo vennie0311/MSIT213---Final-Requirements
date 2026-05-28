@@ -1,0 +1,49 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="page-block">
+    <div class="page-title">
+        <div>
+            <h2>Application Detail</h2>
+            <p>See the full submission history, documents, and status updates for this application.</p>
+        </div>
+        <div class="page-actions">
+            <a class="secondary" href="{% url 'portal:student_dashboard' %}">Back to Applications</a>
+        </div>
+    </div>
+        {% if application.status == 'rejected' and application.notes %}
+        <div class="toast error" style="margin-bottom:1rem;">
+            <strong>Rejection reason:</strong>
+            <div style="margin-top:0.5rem; white-space:pre-wrap;">{{ application.notes }}</div>
+        </div>
+        {% endif %}
+    <div class="grid-two">
+        <div class="card card-compact">
+            <h3>Submission Overview</h3>
+            <p><strong>Title:</strong> {{ application.title }}</p>
+            <p><strong>Program:</strong> {% if application.program %}{{ application.program.scholarship_type }} Scholarship - "{{ application.program.name }}"{% else %}N/A{% endif %}</p>
+            <p><strong>Type:</strong> {% if application.program %}{{ application.program.scholarship_type }}{% else %}N/A{% endif %}</p>
+            <p><strong>Region:</strong> {{ application.region }}</p>
+            <p><strong>Submitted:</strong> {{ application.submitted_at|date:'M d, Y H:i' }}</p>
+            <p><strong>Notes:</strong> {{ application.notes|default:'No notes.' }}</p>
+        </div>
+        <div class="card card-compact">
+            <h3>Uploaded Documents</h3>
+            <ul>
+                <li><a href="{{ application.identity_document.url }}" target="_blank">Identity Document</a></li>
+                <li><a href="{{ application.transcript_document.url }}" target="_blank">Transcript</a></li>
+                <li><a href="{{ application.proof_of_address.url }}" target="_blank">Proof of Address</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="card card-compact" style="margin-top: 1.5rem;">
+        <h3>Education Background</h3>
+        <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 0.85rem;">
+            {% for education in application.education_backgrounds.all %}
+                <li style="padding: 0.9rem 1rem; border-radius: 14px; border:1px solid rgba(124,58,237,0.08); background: rgba(248,250,252,0.9);">
+                    <strong>{{ education.institution_name }}</strong> — {{ education.degree }} <span class="muted">({{ education.year_completed }})</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+{% endblock %}

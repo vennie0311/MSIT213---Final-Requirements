@@ -1,0 +1,61 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="page-block">
+    <div class="page-title">
+        <div>
+            <h2>My Applications</h2>
+            <p>Review your submitted applications, track status, and submit new requests quickly.</p>
+        </div>
+                <th>Reason</th>
+        <div class="page-actions">
+            {% if not user.is_staff %}
+                <a class="primary" href="{% url 'portal:application_create' %}">Submit New Application</a>
+            {% endif %}
+            <a class="secondary" href="{% url 'portal:scholarship_catalog' %}">Available Scholarships</a>
+        </div>
+    </div>
+    <div class="filter-bar">
+        <strong>Region</strong>
+                    <td>
+                        {% if application.status == 'rejected' and application.notes %}
+                            {{ application.notes|truncatewords:12 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+        <a class="filter-pill{% if not selected_region %} active{% endif %}" href="{% url 'portal:student_dashboard' %}">All</a>
+        {% for region in available_regions %}
+            <a class="filter-pill{% if selected_region == region %} active{% endif %}" href="?region={{ region }}">{{ region }}</a>
+        {% endfor %}
+    </div>
+    {% if applications %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for application in applications %}
+                    <tr>
+                        <td>{% if application.program %}{{ application.program.scholarship_type }} Scholarship - "{{ application.program.name }}"{% else %}{{ application.title }}{% endif %}</td>
+                        <td>{{ application.get_status_display }}</td>
+                        <td>{{ application.submitted_at|date:'M d, Y H:i' }}</td>
+                        <td><a class="secondary" href="{% url 'portal:application_detail' application.pk %}">View</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card card-compact">
+        <h3>No applications yet</h3>
+        <p>Get started by submitting your first scholarship application.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

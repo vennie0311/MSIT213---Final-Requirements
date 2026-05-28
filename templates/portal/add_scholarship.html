@@ -1,0 +1,43 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="panel form-card">
+    <div class="page-title">
+        <div>
+            <h2>Add Scholarship Program</h2>
+            <p>Create a scholarship program and assign it to a region and scholarship type.</p>
+        </div>
+        <div class="page-actions">
+            <a class="secondary" href="{% url 'portal:scholarship_catalog' %}">Back to Catalog</a>
+        </div>
+    </div>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="toast error">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="form-grid">
+            {% for field in form %}
+                {% if field.widget.input_type != 'hidden' %}
+                    <div class="form-group">
+                        <label>{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <small style="color: #d32f2f;">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ field }}
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="form-actions">
+            <a class="secondary" href="{% url 'portal:scholarship_catalog' %}">Cancel</a>
+            <button type="submit" class="primary">Create Program</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="page-block">
+    <div class="page-title">
+        <div>
+            <h2>Program Details</h2>
+            <p>View scholarship program information and management details.</p>
+        </div>
+        <div class="page-actions">
+            <a class="secondary" href="{% url 'portal:scholarship_catalog' %}">Back to Programs</a>
+        </div>
+    </div>
+    <div class="grid-two">
+        <div class="card card-compact">
+            <h3>{{ program.name }}</h3>
+            <p><strong>Scholarship Type:</strong> {{ program.scholarship_type }}</p>
+            <p><strong>Region:</strong> {{ program.region }}</p>
+            <p><strong>Status:</strong> {% if program.active %}<span style="color: #10b981;">Active</span>{% else %}<span style="color: #ef4444;">Inactive</span>{% endif %}</p>
+            <p><strong>Created:</strong> {{ program.created_at|date:'M d, Y H:i' }}</p>
+            <p><strong>Created By:</strong> {{ program.created_by.get_full_name|default:program.created_by.username }}</p>
+        </div>
+        <div class="card card-compact">
+            <h3>Description</h3>
+            <p>{{ program.description|default:'No description provided.' }}</p>
+        </div>
+    </div>
+    <div class="card card-compact" style="margin-top: 1.5rem;">
+        <h3>Applications</h3>
+        {% if program.applications.all %}
+        <p style="margin-bottom: 1rem; color: #475569;">Total applicants: <strong>{{ program.applications.count }}</strong></p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Applicant</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in program.applications.all %}
+                    <tr>
+                        <td>{{ application.applicant.get_full_name|default:application.applicant.username }}<br><small>{{ application.applicant.email }}</small></td>
+                        <td>{{ application.get_status_display }}</td>
+                        <td>{{ application.submitted_at|date:'M d, Y' }}</td>
+                        <td><a class="secondary" href="{% url 'portal:application_detail' application.pk %}">View</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: #475569;">No applications received yet for this program.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

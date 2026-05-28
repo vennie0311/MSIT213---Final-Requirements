@@ -1,0 +1,97 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="page-block">
+    <div class="page-title">
+        <div>
+            <h2>Submit Scholarship Application</h2>
+            <p>Upload documents, share your background, and apply for the program that best fits your goals.</p>
+        </div>
+        <div class="page-actions">
+            <a class="secondary" href="{% url 'portal:scholarship_catalog' %}">Back to Scholarship Catalog</a>
+        </div>
+    </div>
+    {% if selected_program %}
+        <div class="card card-compact" style="background: rgba(224, 240, 255, 0.88); margin-bottom: 1rem;">
+            <h3>{{ selected_program.name }}</h3>
+            <p><strong>Region:</strong> {{ selected_program.region }}</p>
+            <p>{{ selected_program.description }}</p>
+        </div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="toast error">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="panel">
+            <fieldset>
+                <legend>Application Details</legend>
+                <div class="form-list">
+                    {% for field in form %}
+                        {% if field.widget.input_type != 'hidden' %}
+                            <div class="form-group">
+                                <label>{{ field.label }}</label>
+                                {{ field }}
+                                {% for error in field.errors %}
+                                    <small style="color: #d32f2f;">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </fieldset>
+        </div>
+        <div class="panel">
+            <fieldset>
+                <legend>Education Background</legend>
+                {{ formset.management_form }}
+                {% if formset.non_form_errors %}
+                    <div class="toast error">
+                        {% for error in formset.non_form_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="section-grid">
+                    {% for edu_form in formset %}
+                        <div class="card card-compact">
+                            <h3>Education Record {{ forloop.counter }}</h3>
+                            {% if edu_form.non_field_errors %}
+                                <div class="toast error" style="margin-bottom: 1rem;">
+                                    {% for error in edu_form.non_field_errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-list">
+                                {% for field in edu_form %}
+                                    {% if field.widget.input_type != 'hidden' %}
+                                        <div class="form-group">
+                                            <label>{{ field.label }}</label>
+                                            {{ field }}
+                                            {% for error in field.errors %}
+                                                <small style="color: #d32f2f;">{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ field }}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
+        </div>
+        <div class="page-actions" style="justify-content:flex-start; margin-top: 1rem;">
+            <button type="submit" class="primary">Submit Application</button>
+            <a href="{% url 'portal:student_dashboard' %}" class="secondary">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

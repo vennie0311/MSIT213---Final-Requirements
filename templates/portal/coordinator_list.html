@@ -1,0 +1,46 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="page-block">
+    <div class="page-title">
+        <div>
+            <h2>Coordinator Management</h2>
+            <p>View and manage all coordinator accounts in the system.</p>
+        </div>
+        <div class="page-actions">
+            <a class="primary" href="{% url 'portal:add_coordinator' %}">Add Coordinator</a>
+        </div>
+    </div>
+    {% if coordinators %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Username</th>
+                    <th>Scholarship Type</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in coordinators %}
+                    <tr>
+                        <td>{{ user.get_full_name|default:user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{% if user.coordinatorprofile %}{{ user.coordinatorprofile.scholarship_type|default:'Unassigned' }}{% else %}N/A{% endif %}</td>
+                        <td>{{ user.date_joined|date:'M d, Y' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card card-compact">
+        <h3>No coordinators yet</h3>
+        <p>Start by adding your first coordinator account.</p>
+        <a class="primary" href="{% url 'portal:add_coordinator' %}">Add Coordinator</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

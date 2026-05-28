@@ -1,0 +1,42 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="hero">
+    <div class="page-title">
+        <div>
+            <h1>Modern scholarship access for ambitious students</h1>
+            <p>Discover regional programs, submit applications with confidence, and follow status updates in a polished dashboard built for students and coordinators.</p>
+        </div>
+        <div class="page-actions">
+            {% if user.is_authenticated %}
+                {% if not user.is_staff %}
+                    <a class="primary" href="{% url 'portal:student_dashboard' %}">Student Dashboard</a>
+                {% elif user.is_superuser %}
+                    <a class="primary" href="{% url 'portal:coordinator_dashboard' %}">View Applicants</a>
+                    <a class="secondary" href="{% url 'portal:coordinator_list' %}">Coordinator Management</a>
+                    <a class="secondary" href="{% url 'portal:scholarship_type_list' %}">Scholarship Types</a>
+                {% else %}
+                    <a class="primary" href="{% url 'portal:coordinator_dashboard' %}">Manage Scholarships</a>
+                {% endif %}
+                <a class="secondary" href="{% url 'portal:scholarship_catalog' %}">Browse Programs</a>
+            {% else %}
+                <a class="primary" href="{% url 'portal:register' %}">Get Started</a>
+                <a class="secondary" href="{% url 'portal:login' %}">Login</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-grid">
+        <div class="feature-card">
+            <h3>Fast applications</h3>
+            <p>Submit your scholarship forms and required documents in one polished workflow.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Regional programs</h3>
+            <p>Access scholarships tailored to your region and see programs curated for your needs.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Coordinator tools</h3>
+            <p>Review, filter, and process applications from a vibrant dashboard built for speed.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="page-block">
+    <div class="page-title">
+        <div>
+            <h2>Available Scholarships</h2>
+            <p>Browse current programs by region and submit applications in a modern, streamlined experience.</p>
+        </div>
+        {% if user.is_staff %}
+        <div class="page-actions">
+            <a class="primary" href="{% url 'portal:add_scholarship' %}">Add Scholarship</a>
+        </div>
+        {% endif %}
+    </div>
+    <div class="filter-bar">
+        <strong>Filter by region:</strong>
+        <a class="filter-pill{% if not selected_region %} active{% endif %}" href="{% url 'portal:scholarship_catalog' %}">All</a>
+        {% for region in available_regions %}
+            <a class="filter-pill{% if selected_region == region %} active{% endif %}" href="?region={{ region }}">{{ region }}</a>
+        {% endfor %}
+    </div>
+    {% if programs %}
+    <div class="card-grid" style="display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:1.25rem;">
+        {% for program in programs %}
+            <article class="card card-compact">
+                <h3>{{ program.name }}</h3>
+                <p><strong>Region:</strong> {{ program.region }}</p>
+                <p>{{ program.description|truncatewords:30 }}</p>
+                <div class="page-actions" style="margin-top: 1rem; justify-content:flex-start;">
+                        {% if not user.is_staff %}
+                            <a class="primary" href="{% url 'portal:application_create' %}?program_id={{ program.pk }}">Apply Now</a>
+                        {% else %}
+                            <a class="secondary" href="{% url 'portal:program_detail' program.pk %}">View</a>
+                        {% endif %}
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card card-compact">
+        <h3>No active scholarships yet</h3>
+        <p>Check back later for new regional scholarship opportunities.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

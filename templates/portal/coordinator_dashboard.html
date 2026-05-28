@@ -1,0 +1,139 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<section class="page-block">
+    <div class="page-title">
+        <div>
+            <h2>{% if user.is_superuser %}Applicants{% else %}Scholarship Management{% endif %}</h2>
+            <p>{% if user.is_superuser %}View and manage all scholarship applications in the system.{% else %}Manage scholarships and review applications for your assigned scholarship type.{% endif %}</p>
+        </div>
+        {% if assigned_type and not user.is_superuser %}
+            <div class="card card-compact" style="padding: 1rem; background: rgba(238,242,255,0.88);">
+                <strong>Assigned scholarship type:</strong> {{ assigned_type }}
+            </div>
+        {% endif %}
+    </div>
+    <form method="get" class="section-grid" style="margin-bottom: 1rem; display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end;">
+        <div class="form-group" style="flex:1; min-width:220px; margin-bottom:0;">
+            <label for="scholarship_type">Scholarship type</label>
+            <input type="text" name="scholarship_type" id="scholarship_type" value="{{ selected_type }}" {% if assigned_type and not user.is_superuser %}readonly{% endif %}>
+        </div>
+        <div class="form-group" style="flex:1; min-width:200px; margin-bottom:0;">
+            <label for="status">Status</label>
+            <select name="status" id="status">
+                <option value="">All</option>
+                <option value="new" {% if selected_status == 'new' %}selected{% endif %}>New</option>
+                <option value="review" {% if selected_status == 'review' %}selected{% endif %}>Review</option>
+                <option value="approved" {% if selected_status == 'approved' %}selected{% endif %}>Approved</option>
+                <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+        </div>
+        <div style="display:flex; align-items:center; margin-bottom:0;">
+            <button class="secondary" type="submit" style="margin-top:0;">Filter</button>
+        </div>
+    </form>
+    <div style="margin-bottom: 1rem; display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center;">
+        <span style="color:#475569;">Showing {{ applications|length }} applicants</span>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Applicant</th>
+                        <th>Program</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Detail</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                        <tr>
+                            <td><input type="checkbox" name="selected_applications" value="{{ application.id }}"></td>
+                            <td>{{ application.applicant.get_full_name }}<br><small>{{ application.applicant.email }}</small></td>
+                            <td>{% if application.program %}{{ application.program.scholarship_type }} Scholarship - "{{ application.program.name }}"{% else %}{{ application.title }}{% endif %}</td>
+                            <td>{% if application.program %}{{ application.program.scholarship_type }}{% else %}Unknown{% endif %}</td>
+                            <td>{{ application.get_status_display }}</td>
+                            <td>{{ application.submitted_at|date:'M d, Y' }}</td>
+                            <td><a class="secondary" href="{% url 'portal:application_detail' application.pk %}">View</a></td>
+                            <td>
+                                <div style="display:flex; gap:0.5rem;">
+                                    <button type="button" class="btn-approve" onclick="approveApp({{ application.id }})">Approve</button>
+                                    <button type="button" class="btn-reject" onclick="openRejectModal({{ application.id }})">Reject</button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="page-actions" style="margin-top: 1rem; gap:1rem;">
+            <div>
+                <select name="action" style="min-width: 220px;">
+                    <option value="">Bulk action</option>
+                    <option value="approved">Approve</option>
+                    <option value="review">Mark review</option>
+                    <option value="rejected">Reject</option>
+                </select>
+            </div>
+            <button type="submit" class="primary">Apply</button>
+        </div>
+        </form>
+
+        <!-- Hidden form used for per-application actions -->
+        <form id="perActionForm" method="post" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="action" id="per_action">
+            <input type="hidden" name="selected_applications" id="per_selected_id">
+            <input type="hidden" name="rejection_reason" id="per_rejection_reason">
+        </form>
+
+        <!-- Rejection modal -->
+        <div id="rejectModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; z-index:9999;">
+            <div style="background:white; padding:1.25rem; border-radius:12px; max-width:640px; width:100%; box-shadow:0 12px 40px rgba(2,6,23,0.2);">
+                <h3 style="margin-top:0">Reject Application</h3>
+                <p class="muted">Please provide a concise reason for rejection. This will be saved to the applicant's notes.</p>
+                <textarea id="modal_rejection_reason" rows="4" style="width:100%; margin-top:0.5rem; padding:0.65rem; border-radius:8px; border:1px solid rgba(12,10,60,0.06);"></textarea>
+                <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:0.75rem;">
+                    <button type="button" class="secondary" onclick="closeRejectModal()">Cancel</button>
+                    <button type="button" class="primary" onclick="confirmReject()">Confirm Reject</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let pendingRejectId = null;
+            function approveApp(id){
+                const form = document.getElementById('perActionForm');
+                document.getElementById('per_action').value = 'approved';
+                document.getElementById('per_selected_id').value = id;
+                form.submit();
+            }
+            function openRejectModal(id){
+                pendingRejectId = id;
+                document.getElementById('modal_rejection_reason').value = '';
+                document.getElementById('rejectModal').style.display = 'flex';
+            }
+            function closeRejectModal(){
+                pendingRejectId = null;
+                document.getElementById('rejectModal').style.display = 'none';
+            }
+            function confirmReject(){
+                const reason = document.getElementById('modal_rejection_reason').value.trim();
+                if(!reason){
+                    alert('Please enter a rejection reason.');
+                    return;
+                }
+                const form = document.getElementById('perActionForm');
+                document.getElementById('per_action').value = 'rejected';
+                document.getElementById('per_selected_id').value = pendingRejectId;
+                document.getElementById('per_rejection_reason').value = reason;
+                form.submit();
+            }
+        </script>
+</section>
+{% endblock %}
