@@ -16,8 +16,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView as JWTTokenObtainPairView, TokenRefreshView as JWTTokenRefreshView
 
-from .forms import RegistrationForm, CoordinatorCreationForm, ScholarshipApplicationForm, ScholarshipProgramForm, EducationBackgroundFormSet, ScholarshipTypeForm
-from .models import ApplicantProfile, CoordinatorProfile, ScholarshipProgram, ScholarshipApplication, EducationBackground, ScholarshipType
+from .forms import RegistrationForm, CoordinatorCreationForm, ScholarshipApplicationForm, ScholarshipProgramForm, ScholarshipTypeForm
+from .models import ApplicantProfile, CoordinatorProfile, ScholarshipProgram, ScholarshipApplication, ScholarshipType
 from .serializers import ScholarshipApplicationStatusSerializer
 
 
@@ -263,58 +263,47 @@ def application_create(request):
     if not profile:
         messages.error(request, 'Please complete your profile during registration first.')
         return redirect('portal:student_dashboard')
+    
     # Coordinators should not submit applications
     if is_coordinator(request.user) and not request.user.is_superuser:
         messages.error(request, 'Coordinators are not allowed to submit scholarship applications.')
         return redirect('portal:coordinator_dashboard')
     
     selected_program = None
-    if request.method == 'GET':
-        program_id = request.GET.get('program_id')
-        if program_id:
-            selected_program = get_object_or_404(ScholarshipProgram, pk=program_id, active=True)
+    program_id = request.GET.get('program_id') or (request.POST.get('program') if request.method == 'POST' else None)
+    
+    if program_id:
+        # Try to get the program from the ID to display it on the page
+        selected_program = ScholarshipProgram.objects.filter(pk=program_id, active=True).first()
 
     if request.method == 'POST':
+        # IMPORTANT: request.FILES is required for your birth certificate, form 137, etc.
         form = ScholarshipApplicationForm(request.POST, request.FILES)
-        formset = EducationBackgroundFormSet(request.POST)
         
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid():
             application = form.save(commit=False)
             application.applicant = request.user
+            
+            # If the program wasn't in the form, assign the one from the URL/GET
+            if not application.program and selected_program:
+                application.program = selected_program
+                
             application.save()
             
-            for education_form in formset.cleaned_data:
-                if education_form:  # Skip empty forms
-                    EducationBackground.objects.create(
-                        application=application,
-                        institution_name=education_form.get('institution_name', ''),
-                        degree=education_form.get('degree', ''),
-                        year_completed=education_form.get('year_completed', ''),
-                    )
-            
-            messages.success(request, 'Application submitted successfully!')
+            messages.success(request, 'Application submitted successfully with required documents!')
             return redirect('portal:student_dashboard')
         else:
-            if form.errors:
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        messages.error(request, f'{field}: {error}')
-            if formset.errors:
-                for i, edu_errors in enumerate(formset.errors):
-                    if edu_errors:
-                        for field, errors in edu_errors.items():
-                            for error in errors:
-                                messages.error(request, f'Education {i+1}: {error}')
+            # Error handling for the main form (including file errors)
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{form.fields[field].label}: {error}')
     else:
         form = ScholarshipApplicationForm(initial={'program': selected_program} if selected_program else None)
-        formset = EducationBackgroundFormSet()
     
     return render(request, 'portal/application_form.html', {
         'form': form,
-        'formset': formset,
         'selected_program': selected_program,
     })
-
 
 @login_required
 def application_detail(request, pk):
@@ -392,3 +381,30 @@ class AddScholarshipView(View):
             messages.success(request, 'Scholarship program created successfully.')
             return redirect('portal:scholarship_catalog')
         return render(request, self.template_name, {'form': form})
+    
+@method_decorator(require_admin, name='dispatch')
+class EditScholarshipTypeView(View):
+    template_name = 'portal/edit_scholarship_type.html'
+
+    def get(self, request, pk):
+        scholarship_type = get_object_or_404(ScholarshipType, pk=pk)
+        form = ScholarshipTypeForm(instance=scholarship_type)
+        return render(request, self.template_name, {'form': form, 'scholarship_type': scholarship_type})
+
+    def post(self, request, pk):
+        scholarship_type = get_object_or_404(ScholarshipType, pk=pk)
+        form = ScholarshipTypeForm(request.POST, instance=scholarship_type)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Scholarship type updated successfully.')
+            return redirect('portal:scholarship_type_list')
+        return render(request, self.template_name, {'form': form, 'scholarship_type': scholarship_type})
+
+
+@method_decorator(require_admin, name='dispatch')
+class DeleteScholarshipTypeView(View):
+    def post(self, request, pk):
+        scholarship_type = get_object_or_404(ScholarshipType, pk=pk)
+        scholarship_type.delete()
+        messages.success(request, 'Scholarship type deleted successfully.')
+        return redirect('portal:scholarship_type_list')

@@ -1,9 +1,26 @@
+import os
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-from django.forms import formset_factory
 
-from .models import ApplicantProfile, CoordinatorProfile, ScholarshipApplication, EducationBackground, ScholarshipProgram, ScholarshipType
+from .models import ApplicantProfile, CoordinatorProfile, ScholarshipApplication, ScholarshipProgram, ScholarshipType
+
+
+ALLOWED_EXTENSIONS = [
+    # Images
+    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp',
+    # Documents
+    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+    # Others
+    '.txt', '.csv',
+]
+
+def validate_file_extension(value):
+    ext = os.path.splitext(value.name)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise forms.ValidationError(
+            f'Unsupported file type "{ext}". Allowed types: images (JPG, PNG, etc.), documents (PDF, DOC, DOCX, XLS, PPT), and text files.'
+        )
 
 
 class RegistrationForm(UserCreationForm):
@@ -59,20 +76,22 @@ class ScholarshipApplicationForm(forms.ModelForm):
         label='Scholarship Program',
         empty_label='Select program',
     )
+    birth_certificate = forms.FileField(validators=[validate_file_extension])
+    form_138 = forms.FileField(validators=[validate_file_extension])
+    proof_of_income = forms.FileField(validators=[validate_file_extension])
+    other_requirements = forms.FileField(required=False, validators=[validate_file_extension])
+    certificate_of_guardianship = forms.FileField(required=False, validators=[validate_file_extension])
 
     class Meta:
         model = ScholarshipApplication
         fields = [
             'program',
-            'title',
-            'identity_document',
-            'transcript_document',
-            'proof_of_address',
-            'notes',
+            'birth_certificate',
+            'form_138',
+            'proof_of_income',
+            'other_requirements',
+            'certificate_of_guardianship',
         ]
-        widgets = {
-            'notes': forms.Textarea(attrs={'rows': 4}),
-        }
 
 
 class ScholarshipProgramForm(forms.ModelForm):
@@ -98,29 +117,3 @@ class ScholarshipTypeForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
         }
-
-
-class EducationBackgroundForm(forms.ModelForm):
-    class Meta:
-        model = EducationBackground
-        fields = ['institution_name', 'degree', 'year_completed']
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        institution = cleaned_data.get('institution_name')
-        degree = cleaned_data.get('degree')
-        year = cleaned_data.get('year_completed')
-        
-        # Allow all fields to be empty (for extra forms), but require all or none
-        has_institution = bool(institution)
-        has_degree = bool(degree)
-        has_year = bool(year)
-        
-        if (has_institution or has_degree or has_year):
-            if not (has_institution and has_degree and has_year):
-                raise forms.ValidationError('All education fields must be filled if any is provided.')
-        
-        return cleaned_data
-
-
-EducationBackgroundFormSet = formset_factory(EducationBackgroundForm, extra=1, min_num=1, validate_min=True, validate_max=False)

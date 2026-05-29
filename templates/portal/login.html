@@ -1,25 +1,90 @@
 {% extends 'portal/base.html' %}
 {% block content %}
-<section class="panel form-card">
-    <div class="page-title">
-        <div>
-            <h2>Welcome back</h2>
-            <p>Log in to manage your scholarships, applications, and program progress.</p>
+<section style="position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background: var(--bg, #f5f5f5);">
+    <div class="panel form-card" style="width:100%; max-width:420px; margin:0; max-height:90vh; overflow-y:auto;">
+
+        <!-- Step 1: Role Selection -->
+        <div id="role-selection">
+            <div class="page-title">
+                <div>
+                    <h2>Welcome back</h2>
+                    <p>Select your role to continue.</p>
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;">
+                <button type="button" class="primary" onclick="showLogin('admin')">Login as Administrator</button>
+                <button type="button" class="primary" onclick="showLogin('coordinator')">Login as Coordinator</button>
+                <button type="button" class="secondary" onclick="showLogin('student')">Login as Student</button>
+            </div>
         </div>
+
+        <!-- Step 2: Login Form -->
+        <div id="login-form" style="display:none;">
+            <div class="page-title">
+                <div>
+                    <h2 id="login-title">Login</h2>
+                    <p id="login-subtitle">Enter your credentials to continue.</p>
+                </div>
+            </div>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="toast error" style="margin-bottom: 1rem;">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="form-list">
+                    <div class="form-group">
+                        <label>{{ form.username.label }}</label>
+                        {{ form.username }}
+                        {% for error in form.username.errors %}
+                            <small style="color: #d32f2f;">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group">
+                        <label>{{ form.password.label }}</label>
+                        {{ form.password }}
+                        {% for error in form.password.errors %}
+                            <small style="color: #d32f2f;">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div style="margin-top: 1.5rem;">
+                    <button type="submit" class="primary" style="width: 100%;">Login</button>
+                </div>
+                <p style="text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                    Don't have an account? <a href="{% url 'portal:register' %}">Register here</a>
+                </p>
+            </form>
+            <button type="button" class="secondary" style="width:100%; margin-top:0.75rem;" onclick="showRoleSelection()">← Back</button>
+        </div>
+
     </div>
-    <form method="post" novalidate>
-        {% csrf_token %}
-        <div class="form-list">
-            <div class="form-group">
-                <label>{{ form.username.label }}</label>
-                {{ form.username }}
-            </div>
-            <div class="form-group">
-                <label>{{ form.password.label }}</label>
-                {{ form.password }}
-            </div>
-        </div>
-        <button type="submit" class="primary">Login</button>
-    </form>
 </section>
+
+<script>
+    const roles = {
+        admin: { title: 'Administrator Login', subtitle: 'Log in to manage the scholarship portal.' },
+        coordinator: { title: 'Coordinator Login', subtitle: 'Log in to manage applications and programs.' },
+        student: { title: 'Student Login', subtitle: 'Log in to manage your scholarships and applications.' },
+    };
+
+    function showLogin(role) {
+        document.getElementById('role-selection').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('login-title').textContent = roles[role].title;
+        document.getElementById('login-subtitle').textContent = roles[role].subtitle;
+    }
+
+    function showRoleSelection() {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('role-selection').style.display = 'block';
+    }
+
+    {% if form.errors or form.non_field_errors %}
+        showLogin('student');
+    {% endif %}
+</script>
 {% endblock %}

@@ -10,40 +10,50 @@
             <a class="secondary" href="{% url 'portal:student_dashboard' %}">Back to Applications</a>
         </div>
     </div>
-        {% if application.status == 'rejected' and application.notes %}
+    {% if application.status == 'rejected' and application.notes %}
         <div class="toast error" style="margin-bottom:1rem;">
             <strong>Rejection reason:</strong>
             <div style="margin-top:0.5rem; white-space:pre-wrap;">{{ application.notes }}</div>
         </div>
-        {% endif %}
+    {% endif %}
     <div class="grid-two">
         <div class="card card-compact">
             <h3>Submission Overview</h3>
-            <p><strong>Title:</strong> {{ application.title }}</p>
             <p><strong>Program:</strong> {% if application.program %}{{ application.program.scholarship_type }} Scholarship - "{{ application.program.name }}"{% else %}N/A{% endif %}</p>
             <p><strong>Type:</strong> {% if application.program %}{{ application.program.scholarship_type }}{% else %}N/A{% endif %}</p>
             <p><strong>Region:</strong> {{ application.region }}</p>
             <p><strong>Submitted:</strong> {{ application.submitted_at|date:'M d, Y H:i' }}</p>
-            <p><strong>Notes:</strong> {{ application.notes|default:'No notes.' }}</p>
+            <p><strong>Status:</strong> {{ application.get_status_display }}</p>
         </div>
         <div class="card card-compact">
             <h3>Uploaded Documents</h3>
             <ul>
-                <li><a href="{{ application.identity_document.url }}" target="_blank">Identity Document</a></li>
-                <li><a href="{{ application.transcript_document.url }}" target="_blank">Transcript</a></li>
-                <li><a href="{{ application.proof_of_address.url }}" target="_blank">Proof of Address</a></li>
+                <li>
+                    <strong>Birth Certificate (NSO/PSA):</strong>
+                    <a href="{{ application.birth_certificate.url }}" target="_blank">View File</a>
+                </li>
+                <li>
+                    <strong>Form 138:</strong>
+                    <a href="{{ application.form_138.url }}" target="_blank">View File</a>
+                </li>
+                <li>
+                    <strong>Proof of Income:</strong>
+                    <a href="{{ application.proof_of_income.url }}" target="_blank">View File</a>
+                </li>
+                {% if application.other_requirements %}
+                <li>
+                    <strong>Other Requirements:</strong>
+                    <a href="{{ application.other_requirements.url }}" target="_blank">View File</a>
+                </li>
+                {% endif %}
+                {% if application.certificate_of_guardianship %}
+                <li>
+                    <strong>Certificate of Guardianship:</strong>
+                    <a href="{{ application.certificate_of_guardianship.url }}" target="_blank">View File</a>
+                </li>
+                {% endif %}
             </ul>
         </div>
-    </div>
-    <div class="card card-compact" style="margin-top: 1.5rem;">
-        <h3>Education Background</h3>
-        <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 0.85rem;">
-            {% for education in application.education_backgrounds.all %}
-                <li style="padding: 0.9rem 1rem; border-radius: 14px; border:1px solid rgba(124,58,237,0.08); background: rgba(248,250,252,0.9);">
-                    <strong>{{ education.institution_name }}</strong> — {{ education.degree }} <span class="muted">({{ education.year_completed }})</span>
-                </li>
-            {% endfor %}
-        </ul>
     </div>
 </section>
 {% endblock %}

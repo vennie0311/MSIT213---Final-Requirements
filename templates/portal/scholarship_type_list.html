@@ -1,4 +1,4 @@
-!{% extends 'portal/base.html' %}
+{% extends 'portal/base.html' %}
 {% block content %}
 <section class="page-block">
     <div class="page-title">
@@ -18,6 +18,7 @@
                     <th>Name</th>
                     <th>Description</th>
                     <th>Created</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -26,6 +27,9 @@
                     <td>{{ type.name }}</td>
                     <td>{{ type.description|default:'No description provided' }}</td>
                     <td>{{ type.created_at|date:'M d, Y' }}</td>
+                    <td>
+                       <a style="background:#4caf50; color:#fff; border-radius:8px; padding:0.4rem 1rem; text-decoration:none; font-weight:500;" href="{% url 'portal:edit_scholarship_type' type.pk %}">Edit</a>
+                       <button type="button" style="background:#f44336; color:#fff; border:none; border-radius:8px; padding:0.4rem 1rem; font-weight:500; cursor:pointer;" onclick="openDeleteModal('{{ type.pk }}', '{{ type.name }}')">Delete</button>                   </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -39,4 +43,36 @@
     </div>
     {% endif %}
 </section>
+
+<!-- Delete Modal -->
+<div id="delete-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:16px; padding:2rem; max-width:420px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <h3 style="margin-bottom:0.5rem;">Delete Scholarship Type</h3>
+        <p style="margin-bottom:1.5rem;">Are you sure you want to delete <strong id="modal-type-name"></strong>? This action cannot be undone.</p>
+        <form method="post" id="delete-form">
+            {% csrf_token %}
+            <div style="display:flex; gap:1rem; justify-content:flex-end;">
+                <button type="button" style="background:#e0e0e0; color:#333; border:none; border-radius:8px; padding:0.5rem 1.2rem; font-weight:500; cursor:pointer;" onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" style="background:#f44336; color:#fff; border:none; border-radius:8px; padding:0.5rem 1.2rem; font-weight:500; cursor:pointer;">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openDeleteModal(pk, name) {
+        document.getElementById('modal-type-name').textContent = name;
+        document.getElementById('delete-form').action = `/admin/scholarship-types/${pk}/delete/`;
+        document.getElementById('delete-modal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('delete-modal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('delete-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
+</script>
 {% endblock %}

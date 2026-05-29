@@ -76,14 +76,14 @@ class ScholarshipApplication(models.Model):
 
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='applications')
     program = models.ForeignKey('ScholarshipProgram', null=True, blank=True, on_delete=models.SET_NULL, related_name='applications')
-    title = models.CharField(max_length=160)
     region = models.CharField(max_length=128, choices=REGION_CHOICES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_NEW)
     submitted_at = models.DateTimeField(auto_now_add=True)
-    identity_document = models.FileField(upload_to='documents/')
-    transcript_document = models.FileField(upload_to='documents/')
-    proof_of_address = models.FileField(upload_to='documents/')
-    notes = models.TextField(blank=True)
+    birth_certificate = models.FileField(upload_to='documents/')
+    form_138 = models.FileField(upload_to='documents/')
+    proof_of_income = models.FileField(upload_to='documents/')
+    other_requirements = models.FileField(upload_to='documents/', blank=True, null=True)
+    certificate_of_guardianship = models.FileField(upload_to='documents/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if self.program:
@@ -91,14 +91,4 @@ class ScholarshipApplication(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.title} - {self.get_status_display()}'
-
-
-class EducationBackground(models.Model):
-    application = models.ForeignKey(ScholarshipApplication, related_name='education_backgrounds', on_delete=models.CASCADE)
-    institution_name = models.CharField(max_length=200)
-    degree = models.CharField(max_length=200)
-    year_completed = models.PositiveIntegerField()
-
-    def __str__(self):
-        return f'{self.institution_name} ({self.year_completed})'
+        return f'{self.program} - {self.get_status_display()}'
