@@ -1,6 +1,6 @@
 {% extends 'portal/base.html' %}
 {% block content %}
-<section class="panel form-card">
+<section class="panel form-card" style="max-width: 1000px; margin: 2rem auto;">
     <div class="page-title">
         <div>
             <h2>Create your account</h2>
@@ -19,11 +19,19 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <div class="form-list">
+        <p style="font-size: 0.85rem; color: #555; margin-bottom: 1rem;">
+            Fields marked with <span style="color: #d32f2f;">*</span> are required.
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             {% for field in form %}
                 {% if field.widget.input_type != 'hidden' %}
                     <div class="form-group">
-                        <label>{{ field.label }}</label>
+                        <label>
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span style="color: #d32f2f;">*</span>
+                            {% endif %}
+                        </label>
                         {{ field }}
                         {% for error in field.errors %}
                             <small style="color: #d32f2f;">{{ error }}</small>
@@ -34,7 +42,9 @@
                 {% endif %}
             {% endfor %}
         </div>
-        <button type="submit" class="primary">Create Account</button>
+        <div style="margin-top: 1.5rem;">
+            <button type="submit" class="primary" style="width: 100%;">Create Account</button>
+        </div>
     </form>
 </section>
 {% endblock %}

@@ -25,8 +25,7 @@ def validate_file_extension(value):
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
-    phone_number = forms.CharField(max_length=32, required=False)
-    honeypot = forms.CharField(required=False, widget=forms.HiddenInput)
+    honeypot = forms.CharField(required=False, widget=forms.HiddenInput, label='')
 
     class Meta:
         model = User
@@ -38,7 +37,17 @@ class RegistrationForm(UserCreationForm):
             raise forms.ValidationError('Spam detected.')
         return data
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Email already used.')
+        return email
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.required = True
+        self.fields['honeypot'].required = False
 class LoginForm(AuthenticationForm):
     pass
 

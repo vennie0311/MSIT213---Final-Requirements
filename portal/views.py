@@ -55,10 +55,7 @@ class RegisterView(View):
             user = form.save(commit=False)
             user.email = form.cleaned_data['email']
             user.save()
-            ApplicantProfile.objects.create(
-                user=user,
-                phone_number=form.cleaned_data['phone_number'],
-            )
+            ApplicantProfile.objects.create(user=user)
             login(request, user)
             messages.success(request, 'Registration successful. You can now create your scholarship application.')
             return redirect('portal:student_dashboard')

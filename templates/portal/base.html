@@ -119,18 +119,16 @@
 <header class="site-header">
     <a href="{% url 'portal:home' %}"><strong>Scholarship Portal</strong></a>
     <nav>
-        <a href="{% url 'portal:home' %}">Home</a>
-        {% if user.is_authenticated %}
-            {% if not user.is_staff %}<a href="{% url 'portal:student_dashboard' %}">My Applications</a>{% endif %}
-            <a href="{% url 'portal:scholarship_catalog' %}">Programs</a>
-            {% if user.is_staff and not user.is_superuser %}<a href="{% url 'portal:coordinator_dashboard' %}">Scholarships</a>{% endif %}
-            {% if user.is_superuser %}<a href="{% url 'portal:coordinator_dashboard' %}">Applicants</a><a href="{% url 'portal:coordinator_list' %}">Coordinators</a><a href="{% url 'portal:scholarship_type_list' %}">Scholarship Types</a>{% endif %}
-            <a href="{% url 'portal:logout' %}">Logout</a>
-        {% else %}
-            <a href="{% url 'portal:login' %}">Login</a>
-            <a href="{% url 'portal:register' %}">Register</a>
-        {% endif %}
-    </nav>
+    {% if user.is_authenticated %}
+        {% if not user.is_staff %}<a href="{% url 'portal:student_dashboard' %}">My Applications</a>{% endif %}
+        <a href="{% url 'portal:scholarship_catalog' %}">Programs</a>
+        {% if user.is_staff and not user.is_superuser %}<a href="{% url 'portal:coordinator_dashboard' %}">Scholarships</a>{% endif %}
+        {% if user.is_superuser %}<a href="{% url 'portal:coordinator_dashboard' %}">Applicants</a><a href="{% url 'portal:coordinator_list' %}">Coordinators</a><a href="{% url 'portal:scholarship_type_list' %}">Scholarship Types</a>{% endif %}
+        <a href="{% url 'portal:logout' %}">Logout</a>
+    {% else %}
+        <a href="{% url 'portal:login' %}?role=staff" class="primary" style="color: #fff;">Login as Admin / Coordinator</a>
+    {% endif %}
+</nav>
 </header>
 <main>
     {% if messages %}
