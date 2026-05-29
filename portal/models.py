@@ -92,3 +92,39 @@ class ScholarshipApplication(models.Model):
 
     def __str__(self):
         return f'{self.program} - {self.get_status_display()}'
+    
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
+
+class ScholarshipApplication(models.Model):
+    STATUS_NEW = 'new'
+    STATUS_REVIEW = 'review'
+    STATUS_APPROVED = 'approved'
+    STATUS_REJECTED = 'rejected'
+
+    STATUS_CHOICES = [
+        (STATUS_NEW, 'New'),
+        (STATUS_REVIEW, 'In review'),
+        (STATUS_APPROVED, 'Approved'),
+        (STATUS_REJECTED, 'Rejected'),
+    ]
+
+    applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='applications')
+    program = models.ForeignKey('ScholarshipProgram', null=True, blank=True, on_delete=models.SET_NULL, related_name='applications')
+    title = models.CharField(max_length=160)
+    region = models.CharField(max_length=128, choices=REGION_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_NEW)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    birth_certificate = models.FileField(upload_to='documents/', storage=RawMediaCloudinaryStorage())
+    form_138 = models.FileField(upload_to='documents/', storage=RawMediaCloudinaryStorage())
+    proof_of_income = models.FileField(upload_to='documents/', storage=RawMediaCloudinaryStorage())
+    other_requirements = models.FileField(upload_to='documents/', blank=True, null=True, storage=RawMediaCloudinaryStorage())
+    certificate_of_guardianship = models.FileField(upload_to='documents/', blank=True, null=True, storage=RawMediaCloudinaryStorage())
+    notes = models.TextField(blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.program:
+            self.region = self.program.region
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.title} - {self.get_status_display()}'
