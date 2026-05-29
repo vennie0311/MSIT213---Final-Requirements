@@ -27,12 +27,16 @@
                 <p><strong>Region:</strong> {{ program.region }}</p>
                 <p>{{ program.description|truncatewords:30 }}</p>
                 <div class="page-actions" style="margin-top: 1rem; justify-content:flex-start;">
-                        {% if not user.is_staff %}
-                            <a class="primary" href="{% url 'portal:application_create' %}?program_id={{ program.pk }}">Apply Now</a>
+                    {% if not user.is_staff %}
+                        {% if program.pk in applied_program_ids %}
+                            <span class="secondary" style="opacity:0.6; cursor:default;">Applied</span>
                         {% else %}
-                            <a class="secondary" href="{% url 'portal:program_detail' program.pk %}">View</a>
+                            <a class="primary" href="{% url 'portal:application_create' %}?program_id={{ program.pk }}">Apply Now</a>
                         {% endif %}
-                </div>
+                    {% else %}
+                        <a class="secondary" href="{% url 'portal:program_detail' program.pk %}">View</a>
+                    {% endif %}
+                </div>  
             </article>
         {% endfor %}
     </div>

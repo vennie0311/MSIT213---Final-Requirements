@@ -1,14 +1,12 @@
 {% extends 'portal/base.html' %}
 {% block content %}
 <section class="panel form-card" style="max-width: 1000px; margin: 2rem auto;">
-    <div class="page-title">
-        <div>
-            <h2>Create your account</h2>
+    <div class="page-title" style="text-align: center; display: block;">
+            <div style="width: 100%;">
+            <h2 style="text-align: center;">Create your account</h2>
             <p>Join the portal to apply for scholarships, track status, and manage documents securely.</p>
         </div>
-        <div class="page-actions">
-            <a class="secondary" href="{% url 'portal:login' %}">Already have an account?</a>
-        </div>
+
     </div>
     <form method="post" novalidate>
         {% csrf_token %}
@@ -45,6 +43,15 @@
         <div style="margin-top: 1.5rem;">
             <button type="submit" class="primary" style="width: 100%;">Create Account</button>
         </div>
+        <div style="margin-top:1rem; text-align:center; display: flex; flex-direction: column; gap: 10px;">
+                <small>
+                    Already have an account? 
+                    <a href="{% url 'portal:login' %}" style="color:#7c3aed; font-weight:600; text-decoration:none;">
+                        Login here
+                    </a>
+                </small>
+
+            </div>
     </form>
 </section>
 {% endblock %}

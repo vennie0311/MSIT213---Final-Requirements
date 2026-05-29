@@ -1,5 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
+from .views import StudentLoginView, StaffLoginView
 from . import views
 
 app_name = 'portal'
@@ -7,7 +8,8 @@ app_name = 'portal'
 urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
     path('accounts/register/', views.RegisterView.as_view(), name='register'),
-    path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
+    path('login/', StudentLoginView.as_view(), name='login'), 
+    path('staff-login/', StaffLoginView.as_view(), name='staff_login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(next_page='portal:home'), name='logout'),
     path('dashboard/', views.student_dashboard, name='student_dashboard'),
     path('scholarships/', views.scholarship_catalog, name='scholarship_catalog'),
@@ -26,5 +28,9 @@ urlpatterns = [
 
     path('admin/scholarship-types/<int:pk>/edit/', views.EditScholarshipTypeView.as_view(), name='edit_scholarship_type'),
     path('admin/scholarship-types/<int:pk>/delete/', views.DeleteScholarshipTypeView.as_view(), name='delete_scholarship_type'),
+
+
+    path('applications/<int:pk>/delete/', views.application_delete, name='application_delete'),
+    path('staff-login/', views.StaffLoginView.as_view(), name='staff_login'),
 ]
 

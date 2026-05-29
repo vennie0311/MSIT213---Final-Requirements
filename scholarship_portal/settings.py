@@ -13,6 +13,8 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "msit213-final-requirements.onrender.com"]
 
 INSTALLED_APPS = [
+    'cloudinary_storage',
+    'cloudinary',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -20,8 +22,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'cloudinary',
-    'cloudinary_storage',
     'portal',
 ]
 
@@ -78,7 +78,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Manila'
 USE_I18N = True
 USE_TZ = True
 
@@ -94,8 +94,9 @@ if os.getenv('CLOUDINARY_URL'):
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {
         'CLOUDINARY_URL': os.getenv('CLOUDINARY_URL'),
-        'RESOURCE_TYPE': 'auto',    # <-- add here
-        'ACCESS_MODE': 'public',    # <-- and this too
+        'RESOURCE_TYPE': 'auto',
+        'ACCESS_MODE': 'public',
+        'TIMEOUT': 60,
     }
 else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'

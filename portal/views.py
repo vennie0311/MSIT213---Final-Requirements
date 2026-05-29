@@ -20,6 +20,7 @@ from .forms import RegistrationForm, CoordinatorCreationForm, ScholarshipApplica
 from .models import ApplicantProfile, CoordinatorProfile, ScholarshipProgram, ScholarshipApplication, ScholarshipType
 from .serializers import ScholarshipApplicationStatusSerializer
 
+from portal.models import ScholarshipProgram, CoordinatorProfile, ScholarshipApplication
 
 class HomeView(TemplateView):
     template_name = 'portal/home.html'
@@ -30,16 +31,39 @@ class HomeView(TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
 
-class CustomLoginView(LoginView):
+class StudentLoginView(LoginView): 
     template_name = 'portal/login.html'
+    def form_valid(self, form): 
+        user = form.get_user()
 
+        # Prevent admins from logging in here 
+        if user.is_staff: 
+            messages.error( self.request, "Administrators must use the staff login portal." ) 
+            return redirect('portal:staff_login') 
+        return super().form_valid(form) 
     def get_success_url(self):
-        redirect_to = self.get_redirect_url()
-        if redirect_to:
-            return redirect_to
-        if self.request.user.is_staff:
+        user = self.request.user
+        if user.is_staff:
             return reverse_lazy('portal:coordinator_dashboard')
         return reverse_lazy('portal:student_dashboard')
+    
+class StaffLoginView(LoginView): 
+    template_name = 'portal/staff_login.html'
+    def form_valid(self, form): 
+        user = form.get_user()
+
+        # Allow only admins/staff
+        if not user.is_staff:
+            messages.error(
+                self.request,
+                "You are not authorized to access the coordinator portal."
+            )
+            return redirect('portal:login')
+
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('portal:admin_dashboard')
 
 
 class RegisterView(View):
@@ -146,23 +170,52 @@ class AddScholarshipTypeView(View):
         return render(request, self.template_name, {'form': form})
 
 
-@login_required
 @require_coordinator
 def coordinator_dashboard(request):
-    if is_coordinator(request.user) and not request.user.is_superuser:
-        return redirect('portal:coordinator_dashboard')
+    status = request.GET.get('status')
+    applications = ScholarshipApplication.objects.all().order_by('-submitted_at')
+    coordinator_profile = CoordinatorProfile.objects.filter(user=request.user).first()
+    assigned_type = None
 
-    selected_region = request.GET.get('region')
-    available_regions = [region for region, _ in ScholarshipApplication._meta.get_field('region').choices]
-    applications = ScholarshipApplication.objects.filter(applicant=request.user)
-    if selected_region:
-        applications = applications.filter(region__iexact=selected_region)
-    return render(request, 'portal/application_list.html', {
+    if coordinator_profile and not request.user.is_superuser:
+        assigned_type = coordinator_profile.scholarship_type
+        selected_type = assigned_type.name if assigned_type else None
+        applications = applications.filter(program__scholarship_type=assigned_type)
+    else:
+        selected_type = request.GET.get('scholarship_type')
+        if selected_type:
+            applications = applications.filter(program__scholarship_type__name__iexact=selected_type)
+
+    if status:
+        applications = applications.filter(status=status)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        selected_ids = request.POST.getlist('selected_applications')
+        if selected_ids and action in ['approved', 'review', 'rejected']:
+            allowed_ids = set(applications.values_list('id', flat=True))
+            target_qs = ScholarshipApplication.objects.filter(id__in=selected_ids, pk__in=allowed_ids)
+            if action == 'rejected':
+                reason = (request.POST.get('rejection_reason') or '').strip()
+                if not reason:
+                    messages.error(request, 'Please provide a rejection reason when rejecting applications.')
+                    return redirect('portal:coordinator_dashboard')
+                for app in target_qs:
+                    prev = app.notes or ''
+                    app.status = 'rejected'
+                    app.notes = f"Rejected by {request.user.get_full_name() or request.user.username}: {reason}\n\n{prev}"
+                    app.save(update_fields=['status', 'notes'])
+            else:
+                target_qs.update(status=action)
+            messages.success(request, 'Selected applications have been updated.')
+            return redirect('portal:coordinator_dashboard')
+
+    return render(request, 'portal/coordinator_dashboard.html', {
         'applications': applications,
-        'available_regions': available_regions,
-        'selected_region': selected_region,
+        'selected_type': assigned_type,
+        'selected_status': status,
+        'assigned_type': assigned_type,
     })
-
 
 @login_required
 def scholarship_catalog(request):
@@ -179,12 +232,20 @@ def scholarship_catalog(request):
 
     if selected_region:
         programs = programs.filter(region__iexact=selected_region)
+
+    applied_program_ids = set()
+    if not request.user.is_staff:
+        applied_program_ids = set(
+            ScholarshipApplication.objects.filter(applicant=request.user)
+            .values_list('program_id', flat=True)
+        )
+
     return render(request, 'portal/scholarship_catalog.html', {
         'programs': programs,
         'available_regions': available_regions,
         'selected_region': selected_region,
+        'applied_program_ids': applied_program_ids,
     })
-
 
 @login_required
 def student_dashboard(request):
@@ -193,7 +254,10 @@ def student_dashboard(request):
 
     selected_region = request.GET.get('region')
     available_regions = [region for region, _ in ScholarshipApplication._meta.get_field('region').choices]
-    applications = ScholarshipApplication.objects.filter(applicant=request.user)
+    applications = ScholarshipApplication.objects.filter(
+        applicant=request.user,
+        program__isnull=False        # <-- add this
+    )
     if selected_region:
         applications = applications.filter(region__iexact=selected_region)
     return render(request, 'portal/application_list.html', {
@@ -201,7 +265,6 @@ def student_dashboard(request):
         'available_regions': available_regions,
         'selected_region': selected_region,
     })
-
 
 @login_required
 @require_coordinator
@@ -405,3 +468,115 @@ class DeleteScholarshipTypeView(View):
         scholarship_type.delete()
         messages.success(request, 'Scholarship type deleted successfully.')
         return redirect('portal:scholarship_type_list')
+    
+@login_required
+def application_delete(request, pk):
+    application = get_object_or_404(ScholarshipApplication, pk=pk, applicant=request.user)
+    if application.status != ScholarshipApplication.STATUS_NEW:
+        messages.error(request, "You can only withdraw applications that are still new.")
+        return redirect('portal:student_dashboard')
+    if request.method == 'POST':
+        application.delete()
+        messages.success(request, "Application withdrawn successfully.")
+        return redirect('portal:student_dashboard')
+    return redirect('portal:student_dashboard')
+
+class CustomLoginView(LoginView):
+    template_name = 'portal/login.html'
+
+    def form_valid(self, form):
+        user = form.get_user()
+        if user.is_staff:
+            form.add_error(None, "Please use the staff login portal to access your account.")
+            return self.form_invalid(form)
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        redirect_to = self.get_redirect_url()
+        if redirect_to:
+            return redirect_to
+        if self.request.user.is_staff:
+            return reverse_lazy('portal:coordinator_dashboard')
+        return reverse_lazy('portal:student_dashboard')
+
+class StaffLoginView(LoginView):
+    template_name = 'portal/staff_login.html'
+
+    def form_valid(self, form):
+        user = form.get_user()
+        if not user.is_staff:
+            form.add_error(None, "This login is for staff only. Please use the student login.")
+            return self.form_invalid(form)
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('portal:coordinator_dashboard')
+    
+def require_admin(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('portal:staff_login')
+        if not is_admin(request.user):
+            messages.error(request, 'You do not have permission to access that page.')
+            return redirect('portal:home')
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+def require_coordinator(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('portal:staff_login')
+        if not is_coordinator(request.user):
+            messages.error(request, 'You do not have permission to access that page.')
+            return redirect('portal:home')
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+@require_coordinator
+def coordinator_dashboard(request):
+    status = request.GET.get('status')
+    applications = ScholarshipApplication.objects.all().order_by('-submitted_at')
+    coordinator_profile = CoordinatorProfile.objects.filter(user=request.user).first()
+    assigned_type = None
+
+    if coordinator_profile and not request.user.is_superuser:
+        assigned_type = coordinator_profile.scholarship_type
+        selected_type = assigned_type.name if assigned_type else None
+        applications = applications.filter(program__scholarship_type=assigned_type)
+    else:
+        selected_type = request.GET.get('scholarship_type')
+        if selected_type:
+            applications = applications.filter(program__scholarship_type__name__iexact=selected_type)
+
+    if status:
+        applications = applications.filter(status=status)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        selected_ids = request.POST.getlist('selected_applications')
+        if selected_ids and action in ['approved', 'review', 'rejected']:
+            allowed_ids = set(applications.values_list('id', flat=True))
+            target_qs = ScholarshipApplication.objects.filter(id__in=selected_ids, pk__in=allowed_ids)
+            if action == 'rejected':
+                reason = (request.POST.get('rejection_reason') or '').strip()
+                if not reason:
+                    messages.error(request, 'Please provide a rejection reason when rejecting applications.')
+                    return redirect('portal:coordinator_dashboard')
+                for app in target_qs:
+                    prev = app.notes or ''
+                    app.status = 'rejected'
+                    app.notes = f"Rejected by {request.user.get_full_name() or request.user.username}: {reason}\n\n{prev}"
+                    app.save(update_fields=['status', 'notes'])
+            else:
+                target_qs.update(status=action)
+            messages.success(request, 'Selected applications have been updated.')
+            return redirect('portal:coordinator_dashboard')
+
+    return render(request, 'portal/coordinator_dashboard.html', {
+        'applications': applications,
+        'selected_type': assigned_type,
+        'selected_status': status,
+        'assigned_type': assigned_type,
+    })
