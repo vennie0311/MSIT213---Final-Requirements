@@ -91,27 +91,23 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
 WHITENOISE_MANIFEST_STRICT = False
 
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 if os.getenv('CLOUDINARY_URL'):
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {
         'CLOUDINARY_URL': os.getenv('CLOUDINARY_URL'),
         'RESOURCE_TYPE': 'auto',
         'ACCESS_MODE': 'public',
         'TIMEOUT': 60,
     }
-else:
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    STORAGES["default"]["BACKEND"] = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -141,6 +137,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'portal:login'
 LOGIN_REDIRECT_URL = 'portal:student_dashboard'
-
-
-
