@@ -16,3 +16,4 @@ services:
         value: "replace-me"
       - key: ALLOWED_HOSTS
         value: "msit213-final-requirements.onrender.com"
+ 
