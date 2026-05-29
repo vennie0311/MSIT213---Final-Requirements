@@ -94,6 +94,8 @@ if os.getenv('CLOUDINARY_URL'):
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {
         'CLOUDINARY_URL': os.getenv('CLOUDINARY_URL'),
+        'RESOURCE_TYPE': 'auto',    # <-- add here
+        'ACCESS_MODE': 'public',    # <-- and this too
     }
 else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
